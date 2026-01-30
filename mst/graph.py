@@ -43,22 +43,22 @@ class Graph:
         """
         A = self.adj_mat
         n = A.shape[0]
-        if A.ndim != 2 or A.shape[1] != n:
-            raise ValueError("Adjacency matrix must be square")
 
         start = 0
 
         # MST adjacency matrix output
         mst = np.zeros_like(A, dtype=float)
 
-        # Textbook structures: S, π, pred
+        # Took help from chatgpt to understand every line of the implementation in the class slides
+        # Conducted trial and error of my implementation with feedback from chatgpt 
+        # Using approach from class slides using S, pi, pred
         in_mst = np.zeros(n, dtype=bool)
-        pi = np.full(n, np.inf, dtype=float)   # π[v] = best known edge weight to connect v to S
-        pred = np.full(n, -1, dtype=int)       # pred[v] = predecessor vertex in MST (-1 == null)
+        pi = np.full(n, np.inf, dtype=float)   # pi[v] = best known edge weight to connect v to S
+        pred = np.full(n, None)       # pred[v] = predecessor vertex in MST
 
         pi[start] = 0.0
 
-        # Priority queue stores (key, vertex). heapq has no decrease-key -> lazy updates
+        #  heapq stores (key=weight, vertex)
         heap = [(pi[v], v) for v in range(n)]
         heapq.heapify(heap)
 
@@ -77,33 +77,35 @@ class Graph:
             in_mst[u] = True
 
             # Add the edge (pred[u], u) to the MST (skip the start node which has no pred)
-            if pred[u] != -1:
+            if pred[u] != None:
                 p = pred[u]
                 w = A[p, u]
-                # Undirected: set both symmetric entries
+                # set both symmetric entries in mst matrix
                 mst[p, u] = w
                 mst[u, p] = w
 
-            # Relax edges out of u: update π[v] for vertices not in MST
+            # edges out of u: update pi[v] for vertices not in MST
             for v in range(n):
-                if in_mst[v] or v == u:
+                if in_mst[v] or v == u: # if vertex v is already in mst or is the same as the previous node, skip
                     continue
-
+        
+                # if vertex v is not in mst and is not u, get edge weight
                 w = A[u, v]
 
-                # Treat 0 as "no edge"
+                # if the weight is 0, it's not an edge
                 if w == 0:
                     continue
 
+                #if weight is less than current best edge weight connecting to v
                 if w < pi[v]:
-                    pi[v] = float(w)
-                    pred[v] = u
-                    heapq.heappush(heap, (pi[v], v))  # lazy decrease-key
+                    pi[v] = float(w) # set the best edge weight to this weight
+                    pred[v] = u # set the new mst predecessor of v to u
+                    heapq.heappush(heap, (pi[v], v))  # decrease the pi of this vertex to this new weight
 
-        # Optional: detect disconnected graph (MST doesn't span all vertices)
+        # handling detection of disconnected graph (MST doesn't span all vertices)
         # If some vertex never got a predecessor (except start), it's disconnected.
         if np.any((pred == -1) & (np.arange(n) != start)):
             raise ValueError("Graph is disconnected: MST does not span all vertices.")
 
-        # Store result as instructed
+        # store result
         self.mst = mst

@@ -72,8 +72,9 @@ def test_mst_edges():
     """
     file_path = './data/small.csv'
     g = Graph(file_path)
-    mst = g.construct_mst()
-    n_v = mst.shape[0]
+    g.construct_mst() #create MST
+    mst = g.mst
+    n_v = mst.shape[0] #get number of vertices
 
     mst_edges = 0
     for i in range(mst.shape[0]): #for each row in mst
@@ -90,9 +91,10 @@ def test_mst_connected():
     """
     file_path = './data/small.csv'
     g = Graph(file_path)
-    mst = g.construct_mst() #create MST
+    g.construct_mst() #create MST
+    mst = g.mst
     n_v = mst.shape[0] #get number of vertices
-
+    
     visited = set() #make empty set of visited vertices
     q = deque([0]) #create priority queue and add start node (0) to it
     visited.add(0)
